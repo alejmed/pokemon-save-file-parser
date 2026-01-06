@@ -8,9 +8,9 @@
 
 ## Current State
 
-**Last Updated**: January 6, 2026 - 11:30 PM
+**Last Updated**: January 6, 2026 - 11:35 PM
 
-### CharMELEON (Level 19)
+### Charmeleon (Level 19)
 
 **Battle Stats**
 - HP: 52/55
@@ -22,12 +22,12 @@
 
 **EVs (Effort Values)**
 - HP: 0 / 255
-- Attack: 70 / 255
+- Attack: 154 / 255
 - Defense: 1 / 255
-- Speed: 78 / 255
+- Speed: 147 / 255
 - Sp. Attack: 0 / 255
 - Sp. Defense: 0 / 255
-- Total: 149 / 510 (29% of max)
+- **TOTAL: 303 / 510 (59% of max)**
 
 **IVs (Individual Values)**
 - HP: 26 (Excellent!)
@@ -72,22 +72,28 @@ When you ask for latest updates:
 2. Key stats (level, HP, main EVs/IVs)
 3. Notable changes from previous saves
 4. Clean formatting - no tables if terminal doesn't render well
-5. Focus on what's new - you already know the rest
+5. Focus on what's new - you already know to rest
 
-### Context for Troubleshooting
+---
+
+## Context for Troubleshooting
 
 ### Known Issue: Move Parsing
 
 **Problem**: Parser shows wrong moves (Frustration, Low Kick, Flamethrower)
 
 **In-Game Reality** (you reported):
-- Charmander evolved to CharMELEON at Level 16
+- Charmeleon evolved from Charmander at Level 16
 - Has Metal Claw, Growl, Ember (Level 7 learnset)
+
+**Current Parser Output**:
+- Shows: Scratch, Frustration, Low Kick, Flamethrower
+- These moves don't match Charmeleon learnset
 
 **Important**: When you ask for updates, I should:
 1. Check CURRENT-STATE.md first
 2. Note any discrepancies with in-game reality
-3. Document in ISSUES.md with timestamp
+3. Document raw data analysis in ISSUES.md with timestamp
 4. Update AGENTS.md with debugging checklist
 5. Verify with raw data analysis before changing code
 
@@ -101,7 +107,7 @@ When you ask for latest updates:
 - Keep it concise - they already know to basics
 - Focus on what changed since last request
 - If terminal format issues with tables, use simple list format
-- Don't show entire dump - extract just what's requested
+- Don't show entire dump - extract just what's requested (e.g., "only EVs", "just moves")
 
 **When user reports discrepancies**:
 - Trust user's in-game observations over parser output
