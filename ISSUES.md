@@ -246,3 +246,97 @@ This is a MAJOR parsing failure.
 
 **Last Updated**: Jan 6, 2026 - 11:00 PM  
 **Status**: Critical bug - Moves are being incorrectly parsed
+
+---
+
+## Update: January 6, 2026 - 11:10 PM (3rd Save Check)
+
+### Latest Save: Charmander Level 15
+
+**In-Game Moves (User Reports):**
+- Metal Claw (Level 10 learn)
+- Growl (starting move)
+- Ember (Level 7 learn)
+- Plus learned more by Level 15
+
+**Parser Output (WRONG):**
+1. Frustration (ID: 232) ← INVALID ID!
+2. Scratch (ID: 10)
+3. Low Kick (ID: 45)
+4. Flamethrower (ID: 52)
+
+### Key Observations
+
+1. **PID and OT ID unchanged** (as expected, same Pokemon)
+   - PID: 0xDCA1D9A6
+   - OT ID: 0x16EF52DC
+
+2. **Raw encrypted values CHANGED from previous saves:**
+   - Move 1: 35730 (0x8B92) → 35730 (0x8B92) (unchanged)
+   - Move 2: 51780 (0xCA44) → 51780 (0xCA44) (unchanged)
+   - Move 3: 35671 (0x8B57) → 35671 (0x8B57) (unchanged)
+   - Move 4: 51834 (0xCA7A) → 51834 (0xCA7A) (unchanged)
+
+   ⚠️ RAW DATA HASN'T CHANGED! Yet game shows different moves!
+
+3. **After XOR decryption (before unshuffle):**
+   - Move 1: 232 (0x00E8) ← PERSISTENT!
+   - Move 2: 10 (0x000A) ✓
+   - Move 3: 45 (0x002D) ← Changed!
+   - Move 4: 52 (0x0034) ← Changed!
+
+4. **Checksum analysis:**
+   - Calculated: 50688 (0xC600)
+   - Stored: 50687 (0xC5FF)
+   - Difference: 1
+
+   ⚠️ Same checksum offset as before!
+
+### Critical Finding
+
+**Raw save data is NOT changing between saves, yet the game shows different moves!**
+
+This suggests one of:
+1. **We're looking at the WRONG SAVE BLOCK**
+   - Save A (0x000000) vs Save B (0x00E000)
+   - Game alternates between them
+   - We might be reading an outdated save block
+
+2. **We're in the WRONG SECTION**
+   - Section 1 is correct for team data
+   - But maybe different Pokemon slot?
+
+3. **Game is using memory, not save file**
+   - In-game data is in RAM
+   - Save file is only updated periodically
+   - User might be seeing RAM data that hasn't flushed to disk
+
+4. **Decryption is fundamentally wrong**
+   - Raw data is encrypted
+   - XOR key might be incorrect
+   - Block unshuffle might be wrong
+
+### Test Required
+
+**Check both save blocks:**
+```bash
+# Read Save A (offset 0x000000)
+# Read Save B (offset 0x00E000)
+# Find which one was updated most recently
+```
+
+**Check save index from footer:**
+```python
+save_index = read_u32(section_offset + 0x0FFC)
+# Compare Save A vs Save B
+# Use the one with higher index (more recent)
+```
+
+### Hypothesis
+
+**Most likely: We're reading the OLD save block**
+
+Game uses 2 save blocks and alternates. We're always finding section 1 in Save A (offset 0x000000), but Save B (offset 0x00E000) might be the most recent one.
+
+**Action item: Modify parser to check BOTH save blocks and use the one with higher save index.**
+
