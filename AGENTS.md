@@ -447,3 +447,80 @@ This repository contains complete Pokemon Generation 3 save file parsing impleme
 For questions or improvements, refer to:
 - PKHeX repository: https://github.com/kwsch/PKHeX
 - Pokemon FireRed decompilation: https://github.com/pret/pokefirered
+
+---
+
+## ⚠️ CRITICAL ISSUES & REMINDERS
+
+### Active Bug: Move Parsing Incorrect
+**Status**: INVESTIGATION REQUIRED  
+**File**: `ISSUES.md` - Full bug tracking and analysis
+
+### Problem
+Parser is extracting INCORRECT moves from save file compared to in-game reality.
+
+**Example**:
+- In-game: Metal Claw, Scratch, Growl, Ember
+- Parser: Flamethrower, Scratch, Low Kick, Empty
+
+### Debugging Checklist (Always Check First!)
+
+Before assuming code is correct, verify:
+
+1. **Move IDs match Gen 3 range** (0-354)
+   - IDs outside this range = decryption error
+   - Example: ID 232 is invalid
+
+2. **Compare with actual in-game data**
+   - Always ask user what moves Pokemon ACTUALLY has
+   - Compare to parser output
+   - If mismatched, investigateate
+
+3. **Verify checksum calculation**
+   - Calculated should match stored (or very close)
+   - Difference of 1 indicates near-miss
+
+4. **Check block shuffle order**
+   - PID % 24 determines order
+   - Verify we're applying correctly
+   - Check if order is inverted
+
+5. **Compare with PKHeX directly**
+   - Run actual PKHeX on same save file
+   - Compare byte-by-byte output
+   - Verify algorithms match exactly
+
+6. **Move locations in data structure**
+   - Moves should be at offsets 0x2C, 0x2E, 0x30, 0x32
+   - Confirm after block unshuffle
+
+### Known Limitations
+
+1. **Nickname Encoding**: Not implemented (shows raw bytes)
+2. **OT Name**: Character encoding not handled
+3. **Ability Lookup**: Requires species-specific data
+4. **Held Items**: Item ID mapping not complete
+5. **PP Calculation**: Base PP + bonuses not implemented
+
+### When Moves Are Wrong
+
+If parser shows wrong moves:
+1. ✅ Document actual vs parsed moves in ISSUES.md
+2. ✅ Print raw encrypted AND decrypted data
+3. ✅ Check all 4 blocks individually
+4. ✅ Search all block data for expected move IDs
+5. ✅ Verify XOR key and block shuffle logic
+6. ✅ Compare checksum (calculated vs stored)
+7. ❌ Do NOT assume code is correct without verification
+
+### Reference
+
+- **Full Bug Analysis**: See `ISSUES.md` for detailed investigation
+- **PKHeX Source**: `PKHeX.Core/PKM/PK3.cs`
+- **Block Shuffle**: `PKHeX.Core/PKM/Util/PokeCrypto.cs`
+- **Decryption**: `DecryptArray3()` function
+
+---
+
+**Last Updated**: January 6, 2026 - 11:05 PM  
+**Status**: Active bug investigation - Move extraction failing
