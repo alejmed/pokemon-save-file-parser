@@ -340,3 +340,83 @@ Game uses 2 save blocks and alternates. We're always finding section 1 in Save A
 
 **Action item: Modify parser to check BOTH save blocks and use the one with higher save index.**
 
+
+---
+
+## Update: January 6, 2026 - 11:25 PM (4th Save Check)
+
+### DISCOVERY: Species ID Found at Wrong Offset
+
+**Finding:**
+- Species ID 5 (CharMELEON) encrypted as 0x8B7F found at offset 0x18
+- This is in UNENCRYPTED section (OT Name field: offsets 0x14-0x1A)
+- Species ID should be at offset 0x20 (start of encrypted section)
+
+### Evidence
+
+```
+Offset 0x18 (in OT Name): 0x7FD3 (32723 decimal)
+Species ID 5 XOR lower 16 bits of (PID ^ OT ID) = 35711 (0x8B7F) ✓ MATCH!
+```
+
+### Problem Identified
+
+**The species ID is NOT at offset 0x20!**
+
+Current hex dump shows:
+- Offset 0x20: 0x8B7A4F (encrypted species)
+- Offset 0x22: 0x8B4ECA (encrypted held item)
+
+But species ID 5 is found at offset 0x18, which is PART OF OT NAME FIELD!
+
+This means:
+1. **My Pokemon structure understanding is WRONG**
+2. **Species ID might be stored at different location in party data**
+3. **PKHeX party structure differs from what I'm assuming**
+
+### PKHeX Party vs PC Structure
+
+According to AGENTS.md:
+- **SIZE_3PARTY = 100** (Party Pokemon)
+- **SIZE_3STORED = 80** (PC Box Pokemon)
+
+**Key difference:**
+- Party Pokemon have EXTRA 20 bytes (battle stats)
+- PC Pokemon are 80 bytes only
+
+**But both use same basic structure!**
+
+### Hypothesis
+
+**In PARTY data, species ID might be at DIFFERENT OFFSET!**
+
+Or maybe:
+- The encrypted section starts at different offset in party data
+- The block structure is different
+- I need to review PKHeX.PK3.cs more carefully
+
+### Critical Finding
+
+**The XOR decryption IS working correctly!**
+- Species ID 5 XORed with correct seed appears in data
+- At wrong offset, but still found
+
+This means:
+- Decryption algorithm is correct
+- XOR key is correct
+- Block unshuffle might be correct
+- BUT I'm looking at wrong structure or offset
+
+### Required Research
+
+1. ✅ Re-read PKHeX PK3.cs - Check exact field offsets for PARTY Pokemon
+2. ✅ Compare SIZE_3PARTY vs SIZE_3STORED definitions
+3. ✅ Check if species ID is at different offset in party vs stored
+4. ✅ Verify battle stats section (offsets 0x50-0x63) are correct
+
+### Update Status
+
+✅ Decryption verified as working
+❌ Pokemon structure/offsets need verification
+❌ Moves still showing wrong values
+
